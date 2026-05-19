@@ -38,14 +38,19 @@ export function authorize(roles: string | string[] = []) {
 
         // Attach role and ownsToken helper
         (req as any).user.role = account.role;
-        (req as any).user.ownsToken = (token: string) =>
-          !!account.refreshTokens?.find((x: any) => x.token === token);
+        
+        // 👈 SAFELY CHECK REFRESHTOKENS: Prevent crashing if the array doesn't exist
+        (req as any).user.ownsToken = (token: string) => {
+          if (!account.refreshTokens) return false;
+          return !!account.refreshTokens.find((x: any) => x.token === token);
+        };
 
         next();
       } catch (err) {
+        // Log the actual error to Render console before letting Express display a 500 error page
+        console.error("Error inside authorize middleware:", err);
         next(err);
       }
     }
   ];
- 
 }

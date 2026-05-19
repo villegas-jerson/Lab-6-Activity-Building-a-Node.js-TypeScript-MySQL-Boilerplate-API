@@ -17,7 +17,8 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:4200',
   'https://villegas-lab7-activity.vercel.app',
-  'https://villegas-lab7-activity-jetros-projects-bea062f9.vercel.app'
+  'https://villegas-lab7-activity-jetros-projects-bea062f9.vercel.app',
+  'https://villegas-lab7-activity-git-main-jetros-projects-bea062f9.vercel.app' // ✅ add this
 ];
 
 app.use(cors({

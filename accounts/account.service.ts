@@ -29,7 +29,7 @@ async function authenticate({ email, password, ipAddress }: any) {
   const account = await db.Account.scope('withHash').findOne({ where: { email } });
 
   if (!account || !account.isVerified || !bcrypt.compareSync(password, account.passwordHash)) {
-    throw 'Email or password is incorrect';
+    throw new Error('Email or password is incorrect'); // 👈 Fixed: Standard Error object
   }
 
   const jwtToken = generateJwtToken(account);
@@ -81,7 +81,7 @@ async function register(params: any, origin: string) {
 async function verifyEmail({ token }: any) {
   const account = await db.Account.findOne({ where: { verificationToken: token } });
 
-  if (!account) throw 'Verification failed';
+  if (!account) throw new Error('Verification failed'); // 👈 Fixed: Standard Error object
 
   account.verified = new Date();
   account.verificationToken = null;
@@ -111,7 +111,7 @@ async function validateResetToken({ token }: any) {
     }
   });
 
-  if (!account) throw 'Invalid token';
+  if (!account) throw new Error('Invalid token'); // 👈 Fixed: Standard Error object
 
   return account;
 }
@@ -140,7 +140,7 @@ async function getById(id: number) {
 
 async function create(params: any) {
   if (await db.Account.findOne({ where: { email: params.email } })) {
-    throw `Email "${params.email}" is already registered`;
+    throw new Error(`Email "${params.email}" is already registered`); // 👈 Fixed: Standard Error object
   }
 
   params.passwordHash = await hash(params.password);
@@ -156,7 +156,7 @@ async function update(id: number, params: any) {
 
   if (params.email && account.email !== params.email &&
       await db.Account.findOne({ where: { email: params.email } })) {
-    throw `Email "${params.email}" is already registered`;
+    throw new Error(`Email "${params.email}" is already registered`); // 👈 Fixed: Standard Error object
   }
 
   if (params.password) {
@@ -179,13 +179,20 @@ async function _delete(id: number) {
 
 async function getAccount(id: number) {
   const account = await db.Account.findByPk(id);
-  if (!account) throw 'Account not found';
+  if (!account) throw new Error('Account not found'); // 👈 Fixed: Standard Error object
   return account;
 }
 
-async function getRefreshToken(token: string) {
+async function getRefreshToken(token: string | undefined) {
+  // Prevent system crash if the token parameter is empty or evaluates as 'undefined' string
+  if (!token || token === 'undefined') {
+    throw new Error('Token is missing'); // 👈 Safely catch missing tokens
+  }
+
   const refreshToken = await db.RefreshToken.findOne({ where: { token } });
-  if (!refreshToken || !refreshToken.isActive) throw 'Invalid token';
+  if (!refreshToken || !refreshToken.isActive) {
+    throw new Error('Invalid token'); // 👈 Fixed: Standard Error object
+  }
   return refreshToken;
 }
 
@@ -216,7 +223,7 @@ function basicDetails(account: any) {
 }
 
 async function sendVerificationEmail(account: any, origin: string) {
-  const verifyUrl = `${origin}/#/account/verify-email?token=${account.verificationToken}`;  // ✅ Fixed: /accounts/ → /account/
+  const verifyUrl = `${origin}/#/account/verify-email?token=${account.verificationToken}`;
   await sendEmail({
     to: account.email,
     subject: 'Sign-up Verification - Verify Email',
@@ -230,7 +237,7 @@ async function sendVerificationEmail(account: any, origin: string) {
 }
 
 async function sendPasswordResetEmail(account: any, origin: string) {
-  const resetUrl = `${origin}/#/account/reset-password?token=${account.resetToken}`;  // ✅ Fixed: /accounts/ → /account/
+  const resetUrl = `${origin}/#/account/reset-password?token=${account.resetToken}`;
   await sendEmail({
     to: account.email,
     subject: 'Sign-up Verification - Reset Password',

@@ -41,9 +41,7 @@ export async function initialize() {
   db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
   db.RefreshToken.belongsTo(db.Account);
 
-  // Sync tables
-  // Since your Hostinger database is empty right now, this will automatically 
-  // build your Accounts and RefreshTokens tables upon successful startup!
+  
   await sequelize.sync({ alter: true });
 
   db.sequelize = sequelize;

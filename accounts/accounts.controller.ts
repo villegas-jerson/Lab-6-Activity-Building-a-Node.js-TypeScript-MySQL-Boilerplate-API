@@ -160,7 +160,6 @@ function verifyEmail(req: Request, res: Response, next: NextFunction) {
 }
 
 function forgotPassword(req: Request, res: Response, next: NextFunction) {
-  // ✅ Hardcoded to Angular frontend URL so reset password email links work correctly
   const origin = 'https://villegas-lab7-activity.vercel.app';
   accountService.forgotPassword(req.body, origin)
     .then(() => res.json({ message: 'Please check your email for password reset instructions' }))
